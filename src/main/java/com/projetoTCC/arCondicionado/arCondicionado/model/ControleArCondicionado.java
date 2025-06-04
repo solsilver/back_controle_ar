@@ -2,6 +2,7 @@ package com.projetoTCC.arCondicionado.arCondicionado.model;
 
 import com.projetoTCC.arCondicionado.arCondicionado.enums.ModoArCondicionadoEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.enums.VelocidadeVentiladorEnum;
+import com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,6 +30,9 @@ public class ControleArCondicionado {
     private Long id;
 
     private String nome;
+
+    @Enumerated(EnumType.STRING)
+    private MarcaAC marca;
 
     private boolean ligado;
 

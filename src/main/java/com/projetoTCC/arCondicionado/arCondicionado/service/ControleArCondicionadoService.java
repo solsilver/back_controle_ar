@@ -42,7 +42,7 @@ public class ControleArCondicionadoService {
     @Transactional
     public ControleArCondicionado cadastrarAparelho(CadastroAparelhoDTO dto) {
         ControleArCondicionado novo = new ControleArCondicionado();
-
+        novo.setMarca(dto.getMarca());
         novo.setNome(dto.getNome());
         novo.setSsid(dto.getSsid());
         novo.setSenhaWifi(dto.getSenhaWifi());
@@ -164,7 +164,7 @@ public class ControleArCondicionadoService {
         resposta.put("modo", controle.getModo().name());
         resposta.put("velocidade", controle.getVelocidade().name());
         resposta.put("swingAtivo", controle.isSwingAtivo());
-
+        resposta.put("marca", controle.getMarca());
         return ResponseEntity.ok(resposta);
     }
     public ResponseEntity<?> atualizarControle(Long id, ControleArCondicionadoUpdateDTO dto) {
@@ -208,6 +208,7 @@ public class ControleArCondicionadoService {
             item.put("modo", controle.getModo().name());
             item.put("velocidade", controle.getVelocidade().name());
             item.put("swingAtivo", controle.isSwingAtivo());
+            item.put("marca",controle.getMarca());
             return item;
         }).collect(Collectors.toList()); // CORRETO
     }
