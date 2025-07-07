@@ -7,6 +7,7 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroAparelhoDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicionadoUpdateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,14 +20,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC.ZHJT03;
+
 @Service
+
 public class ControleArCondicionadoService {
-
     private final ControleArCondicionadoRepository repository;
+    private final Zhjt03Service zhjt03Service;
 
-    public ControleArCondicionadoService(ControleArCondicionadoRepository repository) {
+    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service) {
         this.repository = repository;
+        this.zhjt03Service = zhjt03Service;
     }
+
+
+
 
     @Transactional(readOnly = true)
     public ConexaoESPDTO buscarDadosConexaoPorId(Long id) {
@@ -165,6 +173,10 @@ public class ControleArCondicionadoService {
         resposta.put("velocidade", controle.getVelocidade().name());
         resposta.put("swingAtivo", controle.isSwingAtivo());
         resposta.put("marca", controle.getMarca());
+        List<Integer> raw = controle
+                .getMarca()== ZHJT03 ? zhjt03Service.gerarRaw(controle.getTemperatura(), controle.getModo().name(), controle.getVelocidade().name(), "0")
+                : List.of(0);
+        resposta.put("codigoRaw", raw);
         return ResponseEntity.ok(resposta);
     }
     public ResponseEntity<?> atualizarControle(Long id, ControleArCondicionadoUpdateDTO dto) {

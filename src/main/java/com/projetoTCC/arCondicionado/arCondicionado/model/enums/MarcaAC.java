@@ -13,5 +13,7 @@ public enum MarcaAC {
   GREE,
   TOSHIBA,
   HITACHI,
+  KOMECO,
+  ZHJT03,
   DESCONHECIDA
 };
