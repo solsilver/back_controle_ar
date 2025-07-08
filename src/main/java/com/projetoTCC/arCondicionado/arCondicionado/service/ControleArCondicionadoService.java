@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC.ZHJT03;
+import static com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC.GOODWEATHER;
 
 @Service
 
@@ -173,9 +173,9 @@ public class ControleArCondicionadoService {
         resposta.put("velocidade", controle.getVelocidade().name());
         resposta.put("swingAtivo", controle.isSwingAtivo());
         resposta.put("marca", controle.getMarca());
-        List<Integer> raw = controle
-                .getMarca()== ZHJT03 ? zhjt03Service.gerarRaw(controle.getTemperatura(), controle.getModo().name(), controle.getVelocidade().name(), "0")
-                : List.of(0);
+        List<String> raw = controle
+                .getMarca()== GOODWEATHER ? zhjt03Service.gerarCodigoIr(controle.getModo().name(), controle.getTemperatura(), controle.getVelocidade().name(), true, controle.isLigado()):
+                List.of("");
         resposta.put("codigoRaw", raw);
         return ResponseEntity.ok(resposta);
     }
