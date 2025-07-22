@@ -1,19 +1,27 @@
 package com.projetoTCC.arCondicionado.arCondicionado.service;
 
 import com.projetoTCC.arCondicionado.arCondicionado.enums.ModoArCondicionadoEnum;
+import com.projetoTCC.arCondicionado.arCondicionado.enums.TipoUsuarioEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.enums.VelocidadeVentiladorEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.model.ConexaoESPDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado;
+import com.projetoTCC.arCondicionado.arCondicionado.model.ReservaSala;
+import com.projetoTCC.arCondicionado.arCondicionado.model.Sala;
+import com.projetoTCC.arCondicionado.arCondicionado.model.Usuario;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroAparelhoDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicionadoUpdateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
+import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +29,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC.GOODWEATHER;
+import static com.projetoTCC.arCondicionado.arCondicionado.service.utils.UsuarioUtils.getUsuarioLogado;
 
 @Service
 
 public class ControleArCondicionadoService {
     private final ControleArCondicionadoRepository repository;
     private final Zhjt03Service zhjt03Service;
+    private final ReservaSalaRepository reservaRepository;
 
-    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service) {
+    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service, ReservaSalaRepository reservaRepository) {
         this.repository = repository;
         this.zhjt03Service = zhjt03Service;
+        this.reservaRepository = reservaRepository;
     }
 
 
@@ -179,33 +190,46 @@ public class ControleArCondicionadoService {
         resposta.put("codigoRaw", raw);
         return ResponseEntity.ok(resposta);
     }
+
+    @Transactional
     public ResponseEntity<?> atualizarControle(Long id, ControleArCondicionadoUpdateDTO dto) {
-        Optional<ControleArCondicionado> controleOpt = repository.findById(id);
+        ControleArCondicionado controleOpt = repository.findById(id).orElseThrow(() -> new RuntimeException("Dispositivo não encontrado") );
 
-        if (controleOpt.isEmpty()) {
-            Map<String, Object> erro = new HashMap<>();
-            erro.put("mensagem", "Dispositivo não encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
-        }
+        Usuario usuario = getUsuarioLogado();
 
-        ControleArCondicionado controle = controleOpt.get();
+        Sala sala = controleOpt.getSala();
+        LocalDateTime agora = LocalDateTime.now();
+        DayOfWeek dia = agora.getDayOfWeek();
+        LocalTime hora = agora.toLocalTime();
 
-        // Atualiza somente se o campo vier não nulo (para permitir updates parciais)
-        if (dto.getLigado() != null) controle.setLigado(dto.getLigado());
-        if (dto.getTemperatura() != null) controle.setTemperatura(dto.getTemperatura());
-        if (dto.getModo() != null) controle.setModo(dto.getModo());
-        if (dto.getVelocidade() != null) controle.setVelocidade(dto.getVelocidade());
-        if (dto.getSwingAtivo() != null) controle.setSwingAtivo(dto.getSwingAtivo());
+        Optional<ReservaSala> reservaAtiva = reservaRepository.findAtiva(sala.getId(), dia, hora);
 
-        controle.setUltimaAtualizacao(LocalDateTime.now());
+        boolean ehAdmin = usuario.getTipo() == TipoUsuarioEnum.ADMINISTRATIVO;
+        boolean ehResponsavel = reservaAtiva.map(r -> r.getUsuario().getId().equals(usuario.getId())).orElse(false);
 
-        repository.save(controle);
+        if (reservaAtiva.isEmpty() || ehAdmin || ehResponsavel) {
+
+            // Atualiza somente se o campo vier não nulo (para permitir updates parciais)
+        if (dto.getLigado() != null) controleOpt.setLigado(dto.getLigado());
+        if (dto.getTemperatura() != null) controleOpt.setTemperatura(dto.getTemperatura());
+        if (dto.getModo() != null) controleOpt.setModo(dto.getModo());
+        if (dto.getVelocidade() != null) controleOpt.setVelocidade(dto.getVelocidade());
+        if (dto.getSwingAtivo() != null) controleOpt.setSwingAtivo(dto.getSwingAtivo());
+
+        controleOpt.setUltimaAtualizacao(LocalDateTime.now());
+
+        repository.save(controleOpt);
 
         Map<String, Object> resposta = new HashMap<>();
         resposta.put("mensagem", "Dispositivo atualizado com sucesso");
-        resposta.put("controle", controle);
+        resposta.put("controle", controleOpt);
 
         return ResponseEntity.ok(resposta);
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Você não tem permissão para alterar esse ar-condicionado.");
+        }
     }
 
     public List<Map<String, Object>> buscarTodos() {
