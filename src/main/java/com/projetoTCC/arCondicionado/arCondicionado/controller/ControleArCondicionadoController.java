@@ -2,9 +2,17 @@ package com.projetoTCC.arCondicionado.arCondicionado.controller;
 
 import com.projetoTCC.arCondicionado.arCondicionado.model.ConexaoESPDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado;
+import com.projetoTCC.arCondicionado.arCondicionado.model.Sala;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroAparelhoDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicionadoUpdateDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.service.ControleArCondicionadoService;
+import com.projetoTCC.arCondicionado.arCondicionado.service.SalaService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +25,11 @@ import java.util.Map;
 public class ControleArCondicionadoController {
 
     private final ControleArCondicionadoService service;
+    private final SalaService salaService;
 
-    public ControleArCondicionadoController(ControleArCondicionadoService service) {
+    public ControleArCondicionadoController(ControleArCondicionadoService service, SalaService salaService) {
         this.service = service;
+        this.salaService = salaService;
     }
 
     @GetMapping("/conexao/{id}")
@@ -46,6 +56,29 @@ public class ControleArCondicionadoController {
     public ResponseEntity<List<Map<String, Object>>> buscarTodos() {
         List<Map<String, Object>> resposta =service.buscarTodos();
         return ResponseEntity.ok(resposta);
+    }
+    @GetMapping("/arsalas")
+    public ResponseEntity<List<Map<String, Object>>> buscarTodosArsSalas(@RequestParam Long salaId) {
+        List<Map<String, Object>> resposta =salaService.buscarArsPorSala(salaId);
+        return ResponseEntity.ok(resposta);
+    }
+    @GetMapping("/salas")
+    public Page<SalaDTO> buscarSalas(
+            @RequestParam(required = false) String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return salaService.buscarSalas(nome, pageable);
+    }
+
+    @GetMapping("/salas/nomes")
+    public List<String> buscarNomesSalas() {
+        return salaService.buscarNomesSalas();
+    }
+    @PostMapping("/salas")
+    public ResponseEntity<Sala> criarSala(@RequestBody @Valid SalaCreateDTO dto) {
+        Sala novaSala = salaService.criarSala(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novaSala);
     }
 
 

@@ -25,6 +25,7 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,15 +38,14 @@ public class ControleArCondicionadoService {
     private final ControleArCondicionadoRepository repository;
     private final Zhjt03Service zhjt03Service;
     private final ReservaSalaRepository reservaRepository;
+    private final SalaService salaService;
 
-    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service, ReservaSalaRepository reservaRepository) {
+    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service, ReservaSalaRepository reservaRepository, SalaService salaService) {
         this.repository = repository;
         this.zhjt03Service = zhjt03Service;
         this.reservaRepository = reservaRepository;
+        this.salaService = salaService;
     }
-
-
-
 
     @Transactional(readOnly = true)
     public ConexaoESPDTO buscarDadosConexaoPorId(Long id) {
@@ -60,6 +60,11 @@ public class ControleArCondicionadoService {
     }
     @Transactional
     public ControleArCondicionado cadastrarAparelho(CadastroAparelhoDTO dto) {
+        Usuario usuario = getUsuarioLogado();
+        boolean ehAdmin = usuario.getTipo() == TipoUsuarioEnum.ADMINISTRATIVO;
+        if(!ehAdmin){
+            throw new RuntimeException("Você não possui permissao para cadastrar um novo ar");
+        }
         ControleArCondicionado novo = new ControleArCondicionado();
         novo.setMarca(dto.getMarca());
         novo.setNome(dto.getNome());
@@ -71,6 +76,7 @@ public class ControleArCondicionadoService {
         novo.setModo(ModoArCondicionadoEnum.FRIO);
         novo.setVelocidade(VelocidadeVentiladorEnum.BAIXA);
         novo.setSwingAtivo(false);
+        novo.setSala(salaService.salaByid(dto.getSalaId()));
 
         return repository.save(novo);
     }
@@ -202,12 +208,16 @@ public class ControleArCondicionadoService {
         DayOfWeek dia = agora.getDayOfWeek();
         LocalTime hora = agora.toLocalTime();
 
-        Optional<ReservaSala> reservaAtiva = reservaRepository.findAtiva(sala.getId(), dia, hora);
+        ReservaSala reservaAtiva = reservaRepository.findAtiva(sala.getId(), dia, hora);
 
         boolean ehAdmin = usuario.getTipo() == TipoUsuarioEnum.ADMINISTRATIVO;
-        boolean ehResponsavel = reservaAtiva.map(r -> r.getUsuario().getId().equals(usuario.getId())).orElse(false);
+        boolean ehResponsavel = false;
+        if(Objects.nonNull(reservaAtiva)){
+            ehResponsavel = reservaAtiva.getUsuario().getId().equals(usuario.getId());
+        }
 
-        if (reservaAtiva.isEmpty() || ehAdmin || ehResponsavel) {
+
+        if (Objects.isNull(reservaAtiva) || ehAdmin || ehResponsavel) {
 
             // Atualiza somente se o campo vier não nulo (para permitir updates parciais)
         if (dto.getLigado() != null) controleOpt.setLigado(dto.getLigado());

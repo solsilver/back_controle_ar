@@ -1,6 +1,6 @@
 package com.projetoTCC.arCondicionado.arCondicionado.model.dto;
 
-import com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CadastroAparelhoDTO {
+public class SalaCreateDTO {
+    @NotBlank
     private String nome;
-    private String ssid;
-    private MarcaAC marca;
-    private String senhaWifi;
-    private Long salaId;
+
+    @NotBlank
+    private String localizacao;
 }
