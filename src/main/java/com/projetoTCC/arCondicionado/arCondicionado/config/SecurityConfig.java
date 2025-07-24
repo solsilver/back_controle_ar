@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**",
+                                        "/api/esp/comandos/**",
                                 "/swagger-ui/**",          // libera a interface Swagger
                                 "/swagger-ui.html",        // libera a página principal
                                 "/v3/api-docs/**",         // libera os endpoints da OpenAPI

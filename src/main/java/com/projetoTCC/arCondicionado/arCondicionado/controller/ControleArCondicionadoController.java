@@ -44,7 +44,7 @@ public class ControleArCondicionadoController {
         String codigoArduino = service.gerarCodigoArduino(salvo.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(codigoArduino);
     }
-    @GetMapping("/{id}")
+    @GetMapping("comandos/{id}")
     public ResponseEntity<?> buscarComando(@PathVariable Long id) {
         return service.buscarComandoParaEsp(id);
     }

@@ -14,18 +14,18 @@ public class Zhjt03Service {
     private static final String CODE_SWING = "D56216040000";
 
     private static final Map<String, Integer> modoBase = Map.of(
-            "COOL", 0x20,
-            "HEAT", 0x80,
-            "FAN",  0x60,
-            "DRY",  0x40,
+            "FRIO", 0x20,
+            "QUENTE", 0x80,
+            "VENTILACAO",  0x60,
+            "DESUMIDIFICAR",  0x40,
             "AUTO", 0x00
     );
 
     private static final Map<String, Integer> velocidadeFanMap = Map.of(
             "AUTO",  0x1A,
-            "BAIXO", 0x7A,
-            "MEDIO", 0x5A,
-            "ALTO",  0x3A
+            "BAIXA", 0x7A,
+            "MEDIA", 0x5A,
+            "ALTA",  0x3A
     );
 
     /**
@@ -64,9 +64,9 @@ public class Zhjt03Service {
         String codigo = String.format("0x%s%02X%02X050000", PREFIX, byteModoTemp, byteVelocidade);
         codigos.add(codigo);
 
-        if (swing) {
+        /*if (swing) {
             codigos.add("0x" + CODE_SWING);
-        }
+        }*/
 
         return codigos;
     }

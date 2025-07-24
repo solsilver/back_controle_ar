@@ -1,12 +1,6 @@
 package com.projetoTCC.arCondicionado.arCondicionado.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,9 +24,9 @@ public class Sala {
 
     private String localizacao;
 
-    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<ControleArCondicionado> aresCondicionados;
 
-    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<ReservaSala> reservas;
 }
