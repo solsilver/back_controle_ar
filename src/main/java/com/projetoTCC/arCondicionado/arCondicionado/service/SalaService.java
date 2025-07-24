@@ -5,11 +5,14 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado
 import com.projetoTCC.arCondicionado.arCondicionado.model.ReservaSala;
 import com.projetoTCC.arCondicionado.arCondicionado.model.Sala;
 import com.projetoTCC.arCondicionado.arCondicionado.model.Usuario;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroReservaDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.SalaRepository;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.projetoTCC.arCondicionado.arCondicionado.service.utils.UsuarioUtils.getUsuarioByMatricula;
 import static com.projetoTCC.arCondicionado.arCondicionado.service.utils.UsuarioUtils.getUsuarioLogado;
 
 @Service
@@ -92,4 +96,47 @@ public class SalaService {
         return  salaRepository.findById(salaId).orElseThrow( () -> new RuntimeException("Dispositivo não encontrado"));
     }
 
+    public List<ReservaSalaDTO> buscarReservasDaSala(Long salaId){
+        List<ReservaSala> reservasSala = reservaSalaRepository.findReservasSala(salaId);
+        List<ReservaSalaDTO> reservaSalaDTOs = reservasSala.stream()
+                .map(reserva -> new ReservaSalaDTO(
+                        reserva.getId(),
+                        reserva.getSala().getId(),
+                        reserva.getUsuario().getMatricula(),
+                        reserva.getUsuario().getNome(),
+                        reserva.getDiaSemana(),
+                        reserva.getHorarioInicio(),
+                        reserva.getHorarioFim()
+                ))
+                .collect(Collectors.toList());
+        return reservaSalaDTOs;
+    }
+
+    public void criarReserva(@Valid CadastroReservaDTO dto) {
+        Usuario usuarioLogado = getUsuarioLogado();
+
+        if (Objects.nonNull(dto.getMatricula())) {
+             usuarioLogado = getUsuarioByMatricula(dto.getMatricula());
+        }
+
+        Sala sala = salaRepository
+                .findById(dto.getSalaId()).orElseThrow(() -> new RuntimeException("Sala não encontrada"));
+        ReservaSala reservaSala = ReservaSala.builder()
+                .sala(sala)
+                .horarioFim(dto.getHorarioFim())
+                .horarioInicio(dto.getHorarioInicio())
+                .usuario(usuarioLogado)
+                .diaSemana(dto.getDiaSemana())
+                .permanente(dto.isPermanente()).build();
+        reservaSalaRepository.save(reservaSala);
+
+    }
+
+    public void deletarReserva(Long id) {
+        reservaSalaRepository.deleteById(id);
+    }
+
+    public void deletarSala(Long id) {
+        salaRepository.deleteById(id);
+    }
 }

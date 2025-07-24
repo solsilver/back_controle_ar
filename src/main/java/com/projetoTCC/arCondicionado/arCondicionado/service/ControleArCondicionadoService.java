@@ -258,4 +258,8 @@ public class ControleArCondicionadoService {
             return item;
         }).collect(Collectors.toList()); // CORRETO
     }
+
+    public void deletarAr(Long id) {
+        repository.deleteById(id);
+    }
 }

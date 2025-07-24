@@ -4,7 +4,9 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.ConexaoESPDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado;
 import com.projetoTCC.arCondicionado.arCondicionado.model.Sala;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroAparelhoDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroReservaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicionadoUpdateDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.service.ControleArCondicionadoService;
@@ -80,6 +82,30 @@ public class ControleArCondicionadoController {
         Sala novaSala = salaService.criarSala(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(novaSala);
     }
-
+    @GetMapping("/salaReserva")
+    public ResponseEntity<List<ReservaSalaDTO>> buscarTodosReservasSala(@RequestParam Long salaId) {
+        List<ReservaSalaDTO> resposta =salaService.buscarReservasDaSala(salaId);
+        return ResponseEntity.ok(resposta);
+    }
+    @PostMapping("/reservas")
+    public ResponseEntity<Void> criarReservas(@RequestBody @Valid CadastroReservaDTO dto) {
+         salaService.criarReserva(dto);
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/reservas")
+    public ResponseEntity<Void> deletarReservas(@RequestParam Long id) {
+        salaService.deletarReserva(id);
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/ar")
+    public ResponseEntity<Void> deletarAr(@RequestParam Long id) {
+        service.deletarAr(id);
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping("/sala")
+    public ResponseEntity<Void> criarSala(@RequestParam Long id) {
+        salaService.deletarSala(id);
+        return ResponseEntity.ok().build();
+    }
 
 }
