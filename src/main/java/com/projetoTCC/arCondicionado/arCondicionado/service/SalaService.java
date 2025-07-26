@@ -12,10 +12,12 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.SalaRepository;
+import com.projetoTCC.arCondicionado.arCondicionado.repository.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -24,10 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.projetoTCC.arCondicionado.arCondicionado.service.utils.UsuarioUtils.getUsuarioByMatricula;
 import static com.projetoTCC.arCondicionado.arCondicionado.service.utils.UsuarioUtils.getUsuarioLogado;
 
 @Service
@@ -35,11 +35,13 @@ public class SalaService {
     private final SalaRepository salaRepository;
     private final ControleArCondicionadoRepository arRepository;
     private final ReservaSalaRepository reservaSalaRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public SalaService(SalaRepository salaRepository, ControleArCondicionadoRepository arRepository, ReservaSalaRepository reservaSalaRepository) {
+    public SalaService(SalaRepository salaRepository, ControleArCondicionadoRepository arRepository, ReservaSalaRepository reservaSalaRepository, UsuarioRepository usuarioRepository) {
         this.salaRepository = salaRepository;
         this.arRepository = arRepository;
         this.reservaSalaRepository = reservaSalaRepository;
+        this.usuarioRepository = usuarioRepository;
     }
     public Sala criarSala(SalaCreateDTO dto) {
         Usuario usuario = getUsuarioLogado();
@@ -82,7 +84,7 @@ public class SalaService {
         return controles.stream().map(controle -> {
             Map<String, Object> item = new HashMap<>();
             item.put("id", controle.getId());
-            item.put("mensagem", "Comando carregado com sucesso");
+            item.put("nome", controle.getNome());
             item.put("acao", controle.isLigado() ? "LIGAR" : "DESLIGAR");
             item.put("temperatura", controle.getTemperatura());
             item.put("modo", controle.getModo().name());
@@ -116,7 +118,8 @@ public class SalaService {
         Usuario usuarioLogado = getUsuarioLogado();
 
         if (Objects.nonNull(dto.getMatricula())) {
-             usuarioLogado = getUsuarioByMatricula(dto.getMatricula());
+             usuarioLogado = usuarioRepository.findByMatricula(dto.getMatricula())
+                     .orElseThrow(()-> new RuntimeException("usuario nao encontrado."));
         }
 
         Sala sala = salaRepository
@@ -131,11 +134,14 @@ public class SalaService {
         reservaSalaRepository.save(reservaSala);
 
     }
-
+    @Transactional
     public void deletarReserva(Long id) {
-        reservaSalaRepository.deleteById(id);
+        ReservaSala reserva = reservaSalaRepository.findById(id).orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
+        Sala salaReserva = reserva.getSala();
+        salaReserva.getReservas().remove(reserva);
+        reservaSalaRepository.delete(reserva);
     }
-
+    @Transactional
     public void deletarSala(Long id) {
         salaRepository.deleteById(id);
     }

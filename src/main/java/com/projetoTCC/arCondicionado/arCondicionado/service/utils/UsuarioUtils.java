@@ -19,7 +19,4 @@ public class UsuarioUtils {
 
         return null;
     }
-    public static Usuario getUsuarioByMatricula(Long matricula){
-        return usuarioRepository.findByMatricula(matricula).orElseThrow(()-> new RuntimeException("usuario nao encontrado."));
-    }
 }

@@ -24,9 +24,9 @@ public class Sala {
 
     private String localizacao;
 
-    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER,  orphanRemoval = true)
     private List<ControleArCondicionado> aresCondicionados;
 
-    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER,  orphanRemoval = true)
     private List<ReservaSala> reservas;
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 @Service
 public class LigarArAutomatico {
@@ -23,7 +24,7 @@ public class LigarArAutomatico {
     public void ligarArAntesDaReserva() {
         LocalDateTime agora = LocalDateTime.now();
         DayOfWeek hoje = agora.getDayOfWeek();
-        LocalTime cincoMinutosDepois = agora.plusMinutes(5).toLocalTime();
+        LocalTime cincoMinutosDepois = agora.plusMinutes(1).toLocalTime().truncatedTo(ChronoUnit.MINUTES);;
 
         List<ReservaSala> reservas = reservaRepository.findByDiaSemanaAndHorarioInicio(hoje, cincoMinutosDepois);
 
@@ -38,16 +39,5 @@ public class LigarArAutomatico {
         }
     }
 
-    @Scheduled(cron = "0 */5 * * * *", zone = "America/Sao_Paulo")
-    public void excluirReservasTemporariasEncerradas() {
-        LocalDateTime agora = LocalDateTime.now();
-        DayOfWeek hoje = agora.getDayOfWeek();
-        LocalTime horaAtual = agora.toLocalTime();
-
-        List<ReservaSala> reservasEncerradas = reservaRepository
-                .findByDiaSemanaAndHorarioFimAndPermanenteFalse(hoje, horaAtual);
-
-        reservaRepository.deleteAll(reservasEncerradas);
-    }
 
 }

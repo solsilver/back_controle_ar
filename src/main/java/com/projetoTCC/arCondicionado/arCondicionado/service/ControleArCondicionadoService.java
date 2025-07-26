@@ -256,10 +256,10 @@ public class ControleArCondicionadoService {
             item.put("swingAtivo", controle.isSwingAtivo());
             item.put("marca",controle.getMarca());
             return item;
-        }).collect(Collectors.toList()); // CORRETO
+        }).collect(Collectors.toList());
     }
-
+    @Transactional
     public void deletarAr(Long id) {
-        repository.deleteById(id);
+        repository.deletarPorId(id);
     }
 }

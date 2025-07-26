@@ -8,10 +8,12 @@ import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaReposi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 @Service
 public class DesligaArAutomatico {
@@ -20,17 +22,18 @@ public class DesligaArAutomatico {
     @Autowired
     private ControleArCondicionadoRepository controleRepository;
 
-    @Scheduled(cron = "0 */5 * * * *", zone = "America/Sao_Paulo")
+    @Scheduled(cron = "0 */1 * * * *", zone = "America/Sao_Paulo")
+    @Transactional
     public void desligarArSemReserva() {
         LocalDateTime agora = LocalDateTime.now();
         DayOfWeek hoje = agora.getDayOfWeek();
-        LocalTime horaAtual = agora.toLocalTime();
+        LocalTime horaAtual = agora.toLocalTime().truncatedTo(ChronoUnit.MINUTES);
 
         List<ReservaSala> reservasQueTerminaram = reservaRepository.findByDiaSemanaAndHorarioFim(hoje, horaAtual);
 
         for (ReservaSala reserva : reservasQueTerminaram) {
             Sala sala = reserva.getSala();
-            boolean haProximaReserva = reservaRepository.existsBySalaAndDiaSemanaAndHorarioInicioAfter(
+            boolean haProximaReserva = reservaRepository.existsBySalaAndDiaSemanaAndHorarioInicio(
                     sala, hoje, horaAtual
             );
 
@@ -42,6 +45,11 @@ public class DesligaArAutomatico {
                         controleRepository.save(ac);
                     }
                 }
+            }
+            if(!reserva.isPermanente()){
+                Sala salaReserva = reserva.getSala();
+                salaReserva.getReservas().remove(reserva);
+                reservaRepository.delete(reserva);
             }
         }
     }

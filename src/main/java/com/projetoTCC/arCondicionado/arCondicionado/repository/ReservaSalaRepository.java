@@ -27,4 +27,5 @@ public interface ReservaSalaRepository extends JpaRepository<ReservaSala, Long> 
     @Query("SELECT r FROM ReservaSala r WHERE r.sala.id = :salaId ")
     List<ReservaSala> findReservasSala(@Param("salaId") Long salaId);
 
+    boolean existsBySalaAndDiaSemanaAndHorarioInicio(Sala sala, DayOfWeek hoje, LocalTime horaAtual);
 }
