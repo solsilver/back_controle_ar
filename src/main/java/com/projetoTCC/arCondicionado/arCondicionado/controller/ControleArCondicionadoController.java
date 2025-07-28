@@ -15,10 +15,14 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -41,8 +45,7 @@ public class ControleArCondicionadoController {
     @PostMapping("/cadastrar")
     public ResponseEntity<String> cadastrarAparelho(@RequestBody CadastroAparelhoDTO dto) {
         ControleArCondicionado salvo = service.cadastrarAparelho(dto);
-        String codigoArduino = service.gerarCodigoArduino(salvo.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(codigoArduino);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @GetMapping("comandos/{id}")
     public ResponseEntity<?> buscarComando(@PathVariable Long id) {
@@ -103,9 +106,24 @@ public class ControleArCondicionadoController {
         return ResponseEntity.ok().build();
     }
     @DeleteMapping("/sala")
-    public ResponseEntity<Void> criarSala(@RequestParam Long id) {
+    public ResponseEntity<Void> excluirSala(@RequestParam Long id) {
         salaService.deletarSala(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/codigoesp", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<byte[]> baixarArquivoIno(@RequestParam Long id) {
+        String conteudo = service.gerarCodigoArduino(id);
+
+        byte[] conteudoBytes = conteudo.getBytes(StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("codigo_arduino_" + id + ".ino")
+                .build());
+
+        return new ResponseEntity<>(conteudoBytes, headers, HttpStatus.OK);
     }
 
 }

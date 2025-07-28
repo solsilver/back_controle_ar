@@ -22,7 +22,7 @@ public class DesligaArAutomatico {
     @Autowired
     private ControleArCondicionadoRepository controleRepository;
 
-    @Scheduled(cron = "0 */1 * * * *", zone = "America/Sao_Paulo")
+    @Scheduled(cron = "0 */5 * * * *", zone = "America/Sao_Paulo")
     @Transactional
     public void desligarArSemReserva() {
         LocalDateTime agora = LocalDateTime.now();
