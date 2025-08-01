@@ -1,5 +1,7 @@
 package com.projetoTCC.arCondicionado.arCondicionado.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projetoTCC.arCondicionado.arCondicionado.config.EspWebSocketHandler;
 import com.projetoTCC.arCondicionado.arCondicionado.enums.ModoArCondicionadoEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.enums.TipoUsuarioEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.enums.VelocidadeVentiladorEnum;
@@ -12,13 +14,13 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroAparelhoDT
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicionadoUpdateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -39,12 +41,14 @@ public class ControleArCondicionadoService {
     private final Zhjt03Service zhjt03Service;
     private final ReservaSalaRepository reservaRepository;
     private final SalaService salaService;
+    private final EspWebSocketHandler webSocketHandler;
 
-    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service, ReservaSalaRepository reservaRepository, SalaService salaService) {
+    public ControleArCondicionadoService(ControleArCondicionadoRepository repository, Zhjt03Service zhjt03Service, ReservaSalaRepository reservaRepository, SalaService salaService, EspWebSocketHandler webSocketHandler) {
         this.repository = repository;
         this.zhjt03Service = zhjt03Service;
         this.reservaRepository = reservaRepository;
         this.salaService = salaService;
+        this.webSocketHandler = webSocketHandler;
     }
 
     @Transactional(readOnly = true)
@@ -404,7 +408,7 @@ public class ControleArCondicionadoService {
         controleOpt.setUltimaAtualizacao(LocalDateTime.now());
 
         repository.save(controleOpt);
-
+        enviarComando(controleOpt);
         Map<String, Object> resposta = new HashMap<>();
         resposta.put("mensagem", "Dispositivo atualizado com sucesso");
         resposta.put("controle", controleOpt);
@@ -414,6 +418,37 @@ public class ControleArCondicionadoService {
         else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Você não tem permissão para alterar esse ar-condicionado.");
+        }
+
+    }
+
+    public void enviarComando(ControleArCondicionado controleOpt) {
+        Map<String, Object> comando = new HashMap<>();
+        comando.put("acao", controleOpt.isLigado() ? "LIGAR" : "DESLIGAR");
+        comando.put("temperatura", controleOpt.getTemperatura());
+        comando.put("modo", controleOpt.getModo().name());
+        comando.put("velocidade", controleOpt.getVelocidade().name());
+        comando.put("swingAtivo", controleOpt.isSwingAtivo());
+        comando.put("marca", controleOpt.getMarca());
+
+        if (controleOpt.getMarca() == GOODWEATHER) {
+            List<String> raw = zhjt03Service.gerarCodigoIr(
+                    controleOpt.getModo().name(),
+                    controleOpt.getTemperatura(),
+                    controleOpt.getVelocidade().name(),
+                    true,
+                    controleOpt.isLigado()
+            );
+            comando.put("codigoRaw", raw);
+        } else {
+            comando.put("codigoRaw", List.of(""));
+        }
+
+        try {
+            String jsonComando = new ObjectMapper().writeValueAsString(comando);
+            webSocketHandler.enviarComandoParaDispositivo(controleOpt.getId().toString(), jsonComando);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

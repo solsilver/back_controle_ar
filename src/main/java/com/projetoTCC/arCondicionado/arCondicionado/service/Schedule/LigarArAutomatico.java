@@ -4,6 +4,7 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado
 import com.projetoTCC.arCondicionado.arCondicionado.model.ReservaSala;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
+import com.projetoTCC.arCondicionado.arCondicionado.service.ControleArCondicionadoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ public class LigarArAutomatico {
     private ReservaSalaRepository reservaRepository;
     @Autowired
     private  ControleArCondicionadoRepository controleRepository;
+    @Autowired
+    private ControleArCondicionadoService controleArCondicionadoService;
 
     @Scheduled(cron = "0 */5 * * * *", zone = "America/Sao_Paulo")
     public void ligarArAntesDaReserva() {
@@ -34,6 +37,7 @@ public class LigarArAutomatico {
                     ac.setLigado(true);
                     ac.setUltimaAtualizacao(LocalDateTime.now());
                     controleRepository.save(ac);
+                    controleArCondicionadoService.enviarComando(ac);
                 }
             }
         }
