@@ -13,6 +13,7 @@ public class SalaDTO {
     private String nome;
     private String localizacao;
     private String reservadoPor;
+    private Long matricula;
 
     public SalaDTO(Sala sala) {
         this.id = sala.getId();

@@ -67,6 +67,7 @@ public class SalaService {
             ReservaSala ativa = reservaSalaRepository.findAtiva(salaDTO.getId(), dia, hora);
             if (Objects.nonNull(ativa)) {
                 salaDTO.setReservadoPor(ativa.getUsuario().getNome());
+                salaDTO.setMatricula(ativa.getUsuario().getMatricula());
             }
         });
         return salasPage;

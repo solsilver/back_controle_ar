@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SalaRepository extends JpaRepository<Sala, Long> {
-    @Query("SELECT new com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO(s.id, s.nome, s.localizacao, null) " +
+    @Query("SELECT new com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO(s.id, s.nome, s.localizacao, null , null) " +
             "FROM Sala s WHERE (:nomeFiltro IS NULL OR LOWER(s.nome) LIKE LOWER(CONCAT('%', :nomeFiltro, '%')))")
     Page<SalaDTO> findByNomePage(@Param("nomeFiltro") String nomeFiltro, Pageable pageable);
 
