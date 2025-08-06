@@ -1,79 +1,68 @@
 package com.projetoTCC.arCondicionado.arCondicionado.controller;
 
-import com.projetoTCC.arCondicionado.arCondicionado.config.JwtService;
+
 import com.projetoTCC.arCondicionado.arCondicionado.model.Usuario;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.LoginRequest;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.LoginResponse;
-import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.UsuarioDTO;
-import com.projetoTCC.arCondicionado.arCondicionado.repository.UsuarioRepository;
+import com.projetoTCC.arCondicionado.arCondicionado.service.UsuarioService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder encoder;
-    private final AuthenticationManager authManager;
-    private final JwtService jwtService;
+    private final UsuarioService usuarioService;
 
-    public AuthController(UsuarioRepository usuarioRepository,
-                          PasswordEncoder encoder,
-                          AuthenticationManager authManager,
-                          JwtService jwtService) {
-        this.usuarioRepository = usuarioRepository;
-        this.encoder = encoder;
-        this.authManager = authManager;
-        this.jwtService = jwtService;
+    public AuthController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
     }
+
 
     @PostMapping("/cadastrar")
     public ResponseEntity<?> cadastrar(@RequestBody Usuario usuario) {
-        usuario.setSenha(encoder.encode(usuario.getSenha()));
-        Usuario salvo = usuarioRepository.save(usuario);
+        Usuario salvo = usuarioService.salvarUsuario(usuario);
         return ResponseEntity.ok(salvo);
+    }
+    @PostMapping("/cadastrar-excel")
+    public ResponseEntity<byte[]> cadastrarPorExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            byte[] excelBytes =  usuarioService.salvarUsuarioExcel(file);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "status_usuarios_cadastrados.xlsx");
+            // Retorna a resposta com o arquivo e o status HTTP 200 OK.
+            return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            // Em caso de erro, você pode retornar uma resposta com o status de erro
+            // e uma mensagem. Por exemplo, 500 Internal Server Error.
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        authManager.authenticate(
-            new UsernamePasswordAuthenticationToken(String.valueOf(request.getMatricula()), request.getSenha()));
-
-        Usuario usuario = usuarioRepository.findByMatricula(request.getMatricula())
-            .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
-
-        String roleName = "ROLE_" + usuario.getTipo().name();
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
-
-        String token = jwtService.generateToken(new User(
-            String.valueOf(usuario.getMatricula()),
-            "", authorities
-        ));
-        LoginResponse loginResponse = new LoginResponse(usuario.getId(), usuario.getNome(),
-                usuario.getMatricula().toString(),token, usuario.getTipo());
+        LoginResponse loginResponse = usuarioService.login(request);
         return ResponseEntity.ok(loginResponse);
     }
     @GetMapping("/professores")
     public ResponseEntity<List<UsuarioDTO>> cadastrar() {
-        List<Usuario> professores = usuarioRepository.buscarProfessores();
-        List<UsuarioDTO> usuarioDTO = professores.stream().map(s ->
-            new UsuarioDTO(s.getMatricula(),s.getNome())
-        ).collect(Collectors.toList());
+        List<UsuarioDTO> usuarioDTO = usuarioService.professores();
         return ResponseEntity.ok(usuarioDTO);
     }
 }
