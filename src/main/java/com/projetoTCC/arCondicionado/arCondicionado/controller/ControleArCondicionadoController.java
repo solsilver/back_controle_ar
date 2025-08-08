@@ -2,6 +2,7 @@ package com.projetoTCC.arCondicionado.arCondicionado.controller;
 
 import com.projetoTCC.arCondicionado.arCondicionado.model.ConexaoESPDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.ControleArCondicionado;
+import com.projetoTCC.arCondicionado.arCondicionado.model.Local;
 import com.projetoTCC.arCondicionado.arCondicionado.model.Sala;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroAparelhoDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroReservaDTO;
@@ -9,7 +10,9 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicio
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaPosicaoDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.service.ControleArCondicionadoService;
+import com.projetoTCC.arCondicionado.arCondicionado.service.LocalService;
 import com.projetoTCC.arCondicionado.arCondicionado.service.SalaService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -32,10 +35,12 @@ public class ControleArCondicionadoController {
 
     private final ControleArCondicionadoService service;
     private final SalaService salaService;
+    private final LocalService localService;
 
-    public ControleArCondicionadoController(ControleArCondicionadoService service, SalaService salaService) {
+    public ControleArCondicionadoController(ControleArCondicionadoService service, SalaService salaService, LocalService localService) {
         this.service = service;
         this.salaService = salaService;
+        this.localService = localService;
     }
 
     @GetMapping("/conexao/{id}")
@@ -68,12 +73,13 @@ public class ControleArCondicionadoController {
         return ResponseEntity.ok(resposta);
     }
     @GetMapping("/salas")
-    public Page<SalaDTO> buscarSalas(
-            @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return salaService.buscarSalas(nome, pageable);
+    public List<SalaDTO> buscarSalas(@RequestParam Long localId) {
+        return salaService.buscarSalas(localId);
+    }
+    @PutMapping
+    public ResponseEntity<Void> posicaoSala(@RequestBody List<SalaPosicaoDTO> salaPosicaoDTO){
+        salaService.modificarPosicao(salaPosicaoDTO);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/salas/nomes")
@@ -124,6 +130,11 @@ public class ControleArCondicionadoController {
                 .build());
 
         return new ResponseEntity<>(conteudoBytes, headers, HttpStatus.OK);
+    }
+    @GetMapping("/locais")
+    public List<Local> buscarLocais(
+            @RequestParam Long localId) {
+        return localService.buscarLocais(localId);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.projetoTCC.arCondicionado.arCondicionado.model.dto;
 
 import com.projetoTCC.arCondicionado.arCondicionado.model.Sala;
+import com.projetoTCC.arCondicionado.arCondicionado.model.enums.LadoEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,6 +15,8 @@ public class SalaDTO {
     private String localizacao;
     private String reservadoPor;
     private Long matricula;
+    private Integer posicao;
+    private LadoEnum lado;
 
     public SalaDTO(Sala sala) {
         this.id = sala.getId();

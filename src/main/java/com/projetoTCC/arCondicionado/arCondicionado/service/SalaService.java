@@ -9,13 +9,12 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroReservaDTO
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaPosicaoDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.SalaRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.UsuarioRepository;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,8 +57,8 @@ public class SalaService {
     }
 
 
-    public Page<SalaDTO> buscarSalas(String nomeFiltro, Pageable pageable) {
-        Page<SalaDTO> salasPage = salaRepository.findByNomePage(nomeFiltro, pageable);
+    public List<SalaDTO> buscarSalas(Long local) {
+        List<SalaDTO> salasPage = salaRepository.findByLocal(local);
         LocalDateTime agora = LocalDateTime.now();
         DayOfWeek dia = agora.getDayOfWeek();
         LocalTime hora = agora.toLocalTime();
@@ -78,9 +77,17 @@ public class SalaService {
                 .map(Sala::getNome)
                 .collect(Collectors.toList());
     }
+    public void modificarPosicao(List<SalaPosicaoDTO> salaPosicaoDTO) {
+        salaPosicaoDTO.forEach(s ->{
+            Sala sala = salaRepository.findById(s.getId()).orElseThrow( () -> new RuntimeException("Sala não encontrado"));
+            sala.setPosicao(s.getPosicao());
+            sala.setLado(s.getLado());
+            salaRepository.save(sala);
+        });
+    }
 
     public List<Map<String, Object>> buscarArsPorSala(Long salaId) {
-        Sala salas = salaRepository.findById(salaId).orElseThrow( () -> new RuntimeException("Dispositivo não encontrado"));
+        Sala salas = salaRepository.findById(salaId).orElseThrow( () -> new RuntimeException("Sala não encontrado"));
         List<ControleArCondicionado> controles = salas.getAresCondicionados();
         return controles.stream().map(controle -> {
             Map<String, Object> item = new HashMap<>();
