@@ -1,5 +1,6 @@
 package com.projetoTCC.arCondicionado.arCondicionado.model;
 
+import com.projetoTCC.arCondicionado.arCondicionado.model.enums.LadoEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,15 @@ public class Sala {
     private String nome;
 
     private String localizacao;
+
+    private Integer posicao;
+
+    @Enumerated(EnumType.STRING)
+    private LadoEnum lado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "local_id")
+    private Local local;
 
     @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER,  orphanRemoval = true)
     private List<ControleArCondicionado> aresCondicionados;
