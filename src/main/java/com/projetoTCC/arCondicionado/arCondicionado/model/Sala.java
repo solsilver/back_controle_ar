@@ -24,6 +24,8 @@ public class Sala {
 
     private String localizacao;
 
+    private Integer posicao;
+
     @OneToMany(mappedBy = "sala", cascade = CascadeType.ALL, fetch = FetchType.EAGER,  orphanRemoval = true)
     private List<ControleArCondicionado> aresCondicionados;
 

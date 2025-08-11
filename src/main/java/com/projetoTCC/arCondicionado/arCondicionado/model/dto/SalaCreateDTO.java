@@ -14,4 +14,7 @@ public class SalaCreateDTO {
 
     @NotBlank
     private String localizacao;
+
+    @NotBlank
+    private Integer posicao;
 }

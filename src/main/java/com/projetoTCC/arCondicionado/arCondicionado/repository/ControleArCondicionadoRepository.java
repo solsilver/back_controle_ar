@@ -12,4 +12,8 @@ public interface ControleArCondicionadoRepository extends JpaRepository<Controle
     @Modifying
     @Query(value = "DELETE FROM CONTROLE_AR_CONDICIONADO WHERE id = :idAr", nativeQuery = true)
     void deletarPorId(@Param("idAr") Long idAr);
+    @Query("SELECT COUNT(c) FROM ControleArCondicionado c JOIN c.sala s WHERE (c.ligado = true and s.id = :id)")
+    Integer buscarQuantidadeLigados(Long id);
+    @Query("SELECT COUNT(c) FROM ControleArCondicionado c JOIN c.sala s WHERE (c.ligado = false and s.id = :id)")
+    Integer buscarQuantidadeDesligados(Long id);
 }

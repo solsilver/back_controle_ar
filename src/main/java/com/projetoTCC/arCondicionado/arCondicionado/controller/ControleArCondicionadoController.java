@@ -9,6 +9,8 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ControleArCondicio
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaLocalDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.enums.EnderecoEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.service.ControleArCondicionadoService;
 import com.projetoTCC.arCondicionado.arCondicionado.service.SalaService;
 import jakarta.validation.Valid;
@@ -73,7 +75,13 @@ public class ControleArCondicionadoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return salaService.buscarSalas(nome, pageable);
+        return salaService.buscarSalasPaginadas(nome, pageable);
+    }
+    @GetMapping("/salas/locais")
+    public List<SalaLocalDTO> buscarSalas(
+            @RequestParam(required = false) EnderecoEnum endereco){
+
+        return salaService.buscarSalas(endereco);
     }
 
     @GetMapping("/salas/nomes")

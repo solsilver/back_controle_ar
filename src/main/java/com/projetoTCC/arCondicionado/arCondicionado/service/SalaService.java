@@ -9,6 +9,8 @@ import com.projetoTCC.arCondicionado.arCondicionado.model.dto.CadastroReservaDTO
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.ReservaSalaDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaCreateDTO;
 import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.dto.SalaLocalDTO;
+import com.projetoTCC.arCondicionado.arCondicionado.model.enums.EnderecoEnum;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ControleArCondicionadoRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.ReservaSalaRepository;
 import com.projetoTCC.arCondicionado.arCondicionado.repository.SalaRepository;
@@ -52,19 +54,38 @@ public class SalaService {
         Sala sala = Sala.builder()
                 .nome(dto.getNome())
                 .localizacao(dto.getLocalizacao())
+                .posicao(dto.getPosicao())
                 .build();
 
         return salaRepository.save(sala);
     }
 
 
-    public Page<SalaDTO> buscarSalas(String nomeFiltro, Pageable pageable) {
+    public Page<SalaDTO> buscarSalasPaginadas(String nomeFiltro, Pageable pageable) {
         Page<SalaDTO> salasPage = salaRepository.findByNomePage(nomeFiltro, pageable);
         LocalDateTime agora = LocalDateTime.now();
         DayOfWeek dia = agora.getDayOfWeek();
         LocalTime hora = agora.toLocalTime();
         salasPage.forEach(salaDTO -> {
             ReservaSala ativa = reservaSalaRepository.findAtiva(salaDTO.getId(), dia, hora);
+            if (Objects.nonNull(ativa)) {
+                salaDTO.setReservadoPor(ativa.getUsuario().getNome());
+                salaDTO.setMatricula(ativa.getUsuario().getMatricula());
+            }
+        });
+        return salasPage;
+    }
+    public List<SalaLocalDTO> buscarSalas(EnderecoEnum endereco) {
+        List<SalaLocalDTO> salasPage = salaRepository.findByLocal(endereco.name());
+        LocalDateTime agora = LocalDateTime.now();
+        DayOfWeek dia = agora.getDayOfWeek();
+        LocalTime hora = agora.toLocalTime();
+        salasPage.forEach(salaDTO -> {
+            ReservaSala ativa = reservaSalaRepository.findAtiva(salaDTO.getId(), dia, hora);
+            Integer quantidadeLigados = arRepository.buscarQuantidadeLigados(salaDTO.getId());
+            Integer quantidadeDesligados = arRepository.buscarQuantidadeDesligados(salaDTO.getId());
+            salaDTO.setLigados(quantidadeLigados);
+            salaDTO.setDesligados(quantidadeDesligados);
             if (Objects.nonNull(ativa)) {
                 salaDTO.setReservadoPor(ativa.getUsuario().getNome());
                 salaDTO.setMatricula(ativa.getUsuario().getMatricula());
