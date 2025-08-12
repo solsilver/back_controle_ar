@@ -113,8 +113,8 @@ public class ControleArCondicionadoController {
         service.deletarAr(id);
         return ResponseEntity.ok().build();
     }
-    @DeleteMapping("/sala")
-    public ResponseEntity<Void> excluirSala(@RequestParam Long id) {
+    @DeleteMapping("/sala/{id}")
+    public ResponseEntity<Void> excluirSala(@PathVariable Long id) {
         salaService.deletarSala(id);
         return ResponseEntity.ok().build();
     }
