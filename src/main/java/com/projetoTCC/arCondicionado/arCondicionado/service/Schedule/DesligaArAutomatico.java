@@ -84,10 +84,7 @@ public class DesligaArAutomatico {
                     .existsBySalaAndDiaSemanaAndHorarioInicioAfter(sala, hoje, horaAtual);
 
             if (!haReservaFutura) {
-                List<ControleArCondicionado> aresLigados = sala.getAresCondicionados()
-                        .stream()
-                        .filter(ControleArCondicionado::isLigado)
-                        .toList();
+                List<ControleArCondicionado> aresLigados = sala.getAresCondicionados();
 
                 for (ControleArCondicionado ac : aresLigados) {
                     ac.setLigado(false);
