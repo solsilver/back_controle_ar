@@ -27,7 +27,7 @@ public class LigarArAutomatico {
     public void ligarArAntesDaReserva() {
         LocalDateTime agora = LocalDateTime.now();
         DayOfWeek hoje = agora.getDayOfWeek();
-        LocalTime cincoMinutosDepois = agora.plusMinutes(1).toLocalTime().truncatedTo(ChronoUnit.MINUTES);;
+        LocalTime cincoMinutosDepois = agora.plusMinutes(5).toLocalTime().truncatedTo(ChronoUnit.MINUTES);;
 
         List<ReservaSala> reservas = reservaRepository.findByDiaSemanaAndHorarioInicio(hoje, cincoMinutosDepois);
 

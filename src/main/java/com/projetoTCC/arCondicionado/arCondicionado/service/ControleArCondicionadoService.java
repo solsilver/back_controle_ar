@@ -345,6 +345,9 @@ public class ControleArCondicionadoService {
 
         return sb.toString();
     }
+    public List<Sala> salas(){
+        return salaService.buscarTodasSalas();
+    }
 
 
     public ResponseEntity<?> buscarComandoParaEsp(Long id) {

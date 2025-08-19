@@ -167,4 +167,8 @@ public class SalaService {
     public void deletarSala(Long id) {
         salaRepository.deleteById(id);
     }
+
+    public List<Sala> buscarTodasSalas() {
+        return salaRepository.findAll();
+    }
 }
