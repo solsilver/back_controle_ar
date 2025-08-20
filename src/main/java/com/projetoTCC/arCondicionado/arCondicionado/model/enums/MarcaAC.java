@@ -15,5 +15,6 @@ public enum MarcaAC {
   HITACHI,
   KOMECO,
   GOODWEATHER,
-  DESCONHECIDA
+  DESCONHECIDA,
+  TCL
 };

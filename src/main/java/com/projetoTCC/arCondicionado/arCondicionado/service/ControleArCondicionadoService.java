@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC.GOODWEATHER;
+import static com.projetoTCC.arCondicionado.arCondicionado.model.enums.MarcaAC.TCL;
 import static com.projetoTCC.arCondicionado.arCondicionado.service.utils.UsuarioUtils.getUsuarioLogado;
 
 @Service
@@ -443,7 +445,11 @@ public class ControleArCondicionadoService {
                     controleOpt.isLigado()
             );
             comando.put("codigoRaw", raw);
-        } else {
+        }if(controleOpt.getMarca() == TCL){
+            List<String> raw = new ArrayList<>();
+            raw.add(gerarCodigoTCL(controleOpt));
+            comando.put("codigoRaw", raw);
+        }else {
             comando.put("codigoRaw", List.of(""));
         }
 
@@ -474,5 +480,29 @@ public class ControleArCondicionadoService {
     @Transactional
     public void deletarAr(Long id) {
         repository.deletarPorId(id);
+    }
+    private String gerarCodigoTCL(ControleArCondicionado controle) {
+        // Converte ModoArCondicionadoEnum para TCL112AC.Mode
+        TCL112AC.Mode mode = switch (controle.getModo()) {
+            case FRIO -> TCL112AC.Mode.COOL;
+            case QUENTE -> TCL112AC.Mode.HEAT;
+            case VENTILACAO, DESUMIDIFICAR -> TCL112AC.Mode.COOL; // ajuste se quiser outro comportamento
+        };
+
+        // Converte VelocidadeVentiladorEnum para TCL112AC.Fan
+        TCL112AC.Fan fan = switch (controle.getVelocidade()) {
+            case AUTO -> TCL112AC.Fan.AUTO;
+            case BAIXA -> TCL112AC.Fan.LOW;
+            case MEDIA -> TCL112AC.Fan.MEDIUM;
+            case ALTA -> TCL112AC.Fan.HIGH;
+        };
+
+        // Se estiver desligado, retorna o código fixo de desligar
+        if (!controle.isLigado()) {
+            return "0x23CB26010020030F0000000080C7";
+        }
+
+        // Gera o código usando a service original
+        return TCL112AC.gerarComando(controle.getTemperatura(), mode, fan);
     }
 }
