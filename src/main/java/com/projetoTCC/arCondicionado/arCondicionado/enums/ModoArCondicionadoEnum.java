@@ -10,5 +10,6 @@ public enum ModoArCondicionadoEnum {
     FRIO,
     QUENTE,
     VENTILACAO,
-    DESUMIDIFICAR
+    DESUMIDIFICAR,
+    AUTO
 }

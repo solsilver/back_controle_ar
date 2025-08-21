@@ -449,6 +449,8 @@ public class ControleArCondicionadoService {
             List<String> raw = new ArrayList<>();
             raw.add(gerarCodigoTCL(controleOpt));
             comando.put("codigoRaw", raw);
+            System.out.println(raw);
+
         }else {
             comando.put("codigoRaw", List.of(""));
         }
@@ -486,7 +488,7 @@ public class ControleArCondicionadoService {
         TCL112AC.Mode mode = switch (controle.getModo()) {
             case FRIO -> TCL112AC.Mode.COOL;
             case QUENTE -> TCL112AC.Mode.HEAT;
-            case VENTILACAO, DESUMIDIFICAR -> TCL112AC.Mode.COOL; // ajuste se quiser outro comportamento
+            case VENTILACAO, DESUMIDIFICAR,AUTO -> TCL112AC.Mode.COOL; // ajuste se quiser outro comportamento
         };
 
         // Converte VelocidadeVentiladorEnum para TCL112AC.Fan
